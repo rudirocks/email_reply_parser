@@ -107,8 +107,13 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
   end
 
   def test_parse_out_just_top_for_outlook_reply
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_2_1.txt").to_s
-    assert_equal "Outlook with a reply", EmailReplyParser.parse_reply(body)
+    reply = email(:email_2_1)
+    assert_equal "Outlook with a reply", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_hotmail_reply
+    reply = email(:email_2_2)
+    assert_equal "Reply from the hottest mail.", reply.visible_text
   end
 
   def test_parse_out_sent_from_iPhone
