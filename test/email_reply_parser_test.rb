@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'rubygems'
 require 'test/unit'
 require 'pathname'
@@ -45,6 +46,7 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /^_/, reply.fragments[4].to_s
   end
 
+  #UNIQUE
   def test_reads_bottom_post
     reply = email(:email_1_2)
     assert_equal 6, reply.fragments.size
@@ -71,6 +73,7 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /Loader/,   reply.fragments[1].to_s
   end
 
+  #UNIQUE
   def test_a_complex_body_with_only_one_fragment
     reply = email :email_1_5
 
@@ -87,6 +90,7 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /^-- \nrick/, reply.fragments[1].to_s
   end
 
+  #UNIQUE
   def test_deals_with_multiline_reply_headers
     reply = email :email_1_6
 
@@ -95,12 +99,14 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /Was this/, reply.fragments[1].to_s
   end
 
+  #UNIQUE
   def test_does_not_modify_input_string
     original = "The Quick Brown Fox Jumps Over The Lazy Dog"
     EmailReplyParser.read original
     assert_equal "The Quick Brown Fox Jumps Over The Lazy Dog", original
   end
 
+  #UNIQUE
   def test_returns_only_the_visible_fragments_as_a_string
     reply = email(:email_2_1)
     assert_equal reply.fragments.select{|r| !r.hidden?}.map{|r| r.to_s}.join("\n").rstrip, reply.visible_text
@@ -114,6 +120,21 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
   def test_parse_out_just_top_for_hotmail_reply
     reply = email(:email_2_2)
     assert_equal "Reply from the hottest mail.", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_windows_8_mail
+    reply = email(:email_2_3)
+    assert_equal "This one is from Windows 8 Mail (preview).", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_outlook_2007
+    reply = email(:email_2_4)
+    assert_equal "Here's one from Outlook 2007.", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_more_outlook_2013
+    reply = email(:email_2_5)
+    assert_equal "Didn't have the patience to wait for Outlook 2013 to sync my Gmail, but\nhere's a reply to a different message.", reply.visible_text
   end
 
   def test_parse_out_sent_from_iPhone

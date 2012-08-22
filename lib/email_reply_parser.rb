@@ -122,14 +122,16 @@ class EmailReplyParser
   private
     COMMON_REPLY_HEADER_REGEXES = [
       /^(On(.+)wrote:)$/nm,
-      /^(Date:\s.*From:\s.*To:\s.*Subject:\s.*?)\n\n/nm
+      /^(Date:.*From:.*To:.*Subject:.*?)\n\n/nm,
+      /( *\*?From:.*Sent:.*To:.*Subject:.*?)\n\n/nm
     ]
     COMMON_REPLY_HEADER_REGEXES_REVERSED = [
       /^:etorw.*nO$/n,
-      /^.*\s:tcejbuS.*\s:oT.*\s:morF.*\s:etaD$/n
+      /^.*:tcejbuS.*:oT.*:morF.*:etaD$/n,
+      /^.*:tcejbuS.*:oT.*:tneS.*:morF\*?$/n
     ]
     EMPTY = "".freeze
-    SIGNATURE_REGEX = /(--|__|\w-$)|(^(\w+\s*){1,3} #{"Sent from my".reverse}$)/n
+    SIGNATURE_REGEX = /(--|__|\w-$)|(^(>.*<\s*)*(\w+\s*){1,3} #{"Sent from my".reverse}$)/n
 
     # Detects if a given line is a common reply header.
     #
@@ -144,7 +146,8 @@ class EmailReplyParser
     end
 
     # Tests the full text of the email to see if it contains a common reply
-    # header. If so, removes any newlines from the reply header.
+    # header. If so, removes any newlines and leading whitespace from the reply
+    # header.
     #
     # text - A String email body.
     #
@@ -152,7 +155,7 @@ class EmailReplyParser
     def oneline_reply_headers(text)
       COMMON_REPLY_HEADER_REGEXES.each do |regex|
         if text =~ regex
-          text.gsub! $1, $1.gsub("\n", " ") and break
+          text.gsub!($1, $1.gsub("\n", " ").lstrip) and break
         end
       end
     end
