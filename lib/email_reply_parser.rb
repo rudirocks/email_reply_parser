@@ -131,7 +131,18 @@ class EmailReplyParser
       /^.*:tcejbuS.*:oT.*:tneS.*:morF\*?$/n
     ]
     EMPTY = "".freeze
-    SIGNATURE_REGEX = /(--|__|\w-$)|(^(>.*<\s*)*(\w+\s*){1,3} #{"Sent from my".reverse}$)/n
+
+    # Line optionally starts with spaces, contains two or more hyphens or underscores, and ends with optional whitespace. Example: '---' or '___' or '---   '
+    MULTI_LINE_SIGNATURE_REGEX = /^\s*[-_]{2,}\s*$/
+
+    # Word character followed by hyphen, ending the line with optional spaces. Example: '-Sandro'
+    ONE_LINE_SIGNATURE_REGEX = /(\w-)\s*$/
+
+    # No block-quotes (> or <), followed by up to three words, follwed by "Sent from my". Example: "Sent from my iPhone 3G"
+    SENT_FROM_REGEX = /(^(>.*<\s*)*(\w+\s*){1,3} #{"Sent from my".reverse}$)/
+
+    SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
+
 
     # Detects if a given line is a common reply header.
     #

@@ -90,6 +90,39 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /^-- \nrick/, reply.fragments[1].to_s
   end
 
+  def test_reads_email_containing_hyphens
+    reply = email :email_hyphens
+    assert_equal 1, reply.fragments.size
+    body = reply.fragments[0].to_s
+    assert_match /^Keep in mind/, body
+    assert_match /their physical exam.$/, body
+  end
+
+  def test_arbitrary_hypens_and_underscores
+    assert_one_signature = lambda do |reply|
+      assert_equal 2, reply.fragments.size
+      assert_equal [false, true], reply.fragments.map { |f| f.hidden? }
+    end
+
+    reply = EmailReplyParser.read "here __and__ now.\n\n---\nSandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "--okay\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "__okay\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "--1337\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "__1337\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "data -- __ foo\n\n-Sandro"
+    assert_one_signature.call reply
+  end
+
   #UNIQUE
   def test_deals_with_multiline_reply_headers
     reply = email :email_1_6
