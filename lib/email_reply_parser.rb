@@ -47,7 +47,7 @@ class EmailReplyParser
   #
   # Returns a String.
   def self.parse_reply(text)
-    self.read(text).visible_text
+    self.read(text.to_s).visible_text
   end
 
   ### Emails

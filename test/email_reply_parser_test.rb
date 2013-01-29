@@ -201,6 +201,16 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal EmailReplyParser.read(body).visible_text, EmailReplyParser.parse_reply(body)
   end
 
+  def test_parse_nil_body
+    body = nil
+    assert_equal "", EmailReplyParser.parse_reply(body)
+  end
+
+  def test_parse_empty_body
+    body = ""
+    assert_equal "", EmailReplyParser.parse_reply(body)
+  end
+
   def email(name)
     body = IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
     EmailReplyParser.read body
