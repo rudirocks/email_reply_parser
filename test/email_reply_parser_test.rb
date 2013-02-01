@@ -123,6 +123,11 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_one_signature.call reply
   end
 
+  def test_email_body_is_signature
+    reply = EmailReplyParser.parse_reply "-- \nLes Hill\nleshill@gmail.com"
+    assert_equal "", reply
+  end
+
   #UNIQUE
   def test_deals_with_multiline_reply_headers
     reply = email :email_1_6
