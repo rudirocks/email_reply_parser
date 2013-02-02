@@ -107,7 +107,7 @@ class EmailReplyParser
 
       # Be sure to parse the last line of the email.
       if (last_line = @scanner.rest.to_s).size > 0
-        scan_line(last_line)
+        scan_line(last_line, true)
       end
 
       # Finish up the final fragment.  Finishing a fragment will detect any
@@ -139,7 +139,7 @@ class EmailReplyParser
     # Example: '-Sandro'
     ONE_LINE_SIGNATURE_REGEX = /^\s*-\w/
 
-    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s-]+Original Message[\s-]+$/
+    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s_-]+(Original Message)?[\s_-]+$/
 
     # No block-quotes (> or <), followed by up to three words, followed by "Sent from my".
     # Example: "Sent from my iPhone 3G"
@@ -179,11 +179,6 @@ class EmailReplyParser
         text.gsub! match[1], match[1].gsub("\n", " ") unless match[1] =~ /\n\n/
       end
 
-      # Some users may reply directly above a line of underscores.
-      # In order to ensure that these fragments are split correctly,
-      # make sure that all lines of underscores are preceded by
-      # at least two newline characters.
-      text.gsub!(/([^\n])(?=\n_{7}_+)$/m, "\\1\n")
       text
     end
 
@@ -193,26 +188,17 @@ class EmailReplyParser
     #
     # Returns a String.
     def parse_name_from_address(address)
-      raw_name = parse_raw_name_from_address(address)
-      normalize_name(raw_name)
+      normalize_name(parse_raw_name_from_address(address))
     end
 
     def parse_raw_name_from_address(address)
       match = address.match(/^["']*([\w\s,]+)["']*\s*</)
-      unless match.nil?
-        match[1].strip.to_s
-      else
-        ""
-      end
+      match ? match[1].strip.to_s : EMPTY
     end
 
     def parse_email_from_address(address)
       match = address.match /<(.*)>/
-      if match.nil?
-        address
-      else
-        match[1]
-      end
+      match ? match[1] : address
     end
 
     # Normalize a name to First Last
@@ -237,34 +223,19 @@ class EmailReplyParser
       end
     end
 
-    # Detects if a given line is a common reply header.
-    #
-    # line - A String line of text from the email.
-    #
-    # Returns true if the line is a valid header, or false.
-    def line_is_reply_header?(line)
-      COMMON_REPLY_HEADER_REGEXES.each do |regex|
-        return true if line =~ regex
-      end
-      false
-    end
-
     ### Line-by-Line Parsing
 
-    # Scans the given line of text and figures out which fragment it belongs
-    # to.
-    #
-    # line - A String line of text from the email.
-    #
-    # Returns nothing.
-    def scan_line(line)
+    # Scans the given line of text and determines which fragment it belongs to.
+    def scan_line(line, last = false)
       line.chomp!("\n")
       line.reverse!
-      line.rstrip! unless signature_line?(line)
+      line.rstrip!
 
       # Mark the current Fragment as a signature if the current line is empty
       # and the Fragment starts with a common signature indicator.
-      if @fragment && line == EMPTY
+      # Mark the current Fragment as a quote if the current line is empty
+      # and the Fragment starts with a multiline quote header.
+      if @fragment && (line == EMPTY || last)
         is_signature = signature_line?(@fragment.lines.first)
         if is_signature
           @fragment.signature = true
@@ -279,9 +250,8 @@ class EmailReplyParser
       # quoted Fragment.
       is_quoted = !!(line =~ /^>+/n)
 
-      # If the line matches the current fragment, add it.  Note that a common
-      # reply header also counts as part of the quoted Fragment, even though
-      # it doesn't start with `>`.
+      # Note that a common reply header also counts as part of the quoted
+      # Fragment, even though it doesn't start with `>`.
       unless @fragment &&
           ((@fragment.quoted? == is_quoted) ||
            (@fragment.quoted? && (line_is_reply_header?(line) || line == EMPTY)))
@@ -346,6 +316,18 @@ class EmailReplyParser
       line =~ SIGNATURE_REGEX || line_is_signature_name?(line)
     end
 
+    # Detects if a given line is a common reply header.
+    #
+    # line - A String line of text from the email.
+    #
+    # Returns true if the line is a valid header, or false.
+    def line_is_reply_header?(line)
+      COMMON_REPLY_HEADER_REGEXES.each do |regex|
+        return true if line =~ regex
+      end
+      false
+    end
+
     # Detects if the @from name is a big part of a given line and therefore the beginning of a signature
     #
     # line - A String line of text from the email.
@@ -363,8 +345,8 @@ class EmailReplyParser
       regexp = Regexp.new(name_parts.join(seperator), Regexp::IGNORECASE)
     end
 
-    # Builds the fragment string and reverses it, after all lines have been
-    # added.  It also checks to see if this Fragment is hidden.  The hidden
+    # Builds the fragment string, after all lines have been added.
+    # It also checks to see if this Fragment is hidden.  The hidden
     # Fragment check reads from the bottom to the top.
     #
     # Any quoted Fragments or signature Fragments are marked hidden if they
@@ -406,10 +388,11 @@ class EmailReplyParser
   # Paragraphs should get their own fragment if they are a quoted area or a
   # signature.
   class Fragment < Struct.new(:quoted, :signature, :reply_header, :hidden)
-    # This is an Array of String lines of content.  Since the content is
-    # reversed, this array is backwards, and contains reversed strings.
+    # Array of string lines that make up the content of this fragment.
     attr_reader :lines
 
+    # Array of string lines that is being processed not having
+    # an empty line.
     attr_reader :current_block
 
     # This is reserved for the joined String that is build when this Fragment
@@ -449,7 +432,7 @@ class EmailReplyParser
     end
 
     def to_s
-      @content
+      @lines ? @lines.join("\n") : @content
     end
 
     def inspect

@@ -91,7 +91,7 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal [false, false], reply.fragments.map { |f| f.quoted? }
     assert_equal [false, true], reply.fragments.map { |f| f.signature? }
     assert_equal [false, true], reply.fragments.map { |f| f.hidden? }
-    assert_match /^-- \nrick/, reply.fragments[1].to_s
+    assert_match /^--\nrick/, reply.fragments[1].to_s
   end
 
   def test_reads_email_containing_hyphens
