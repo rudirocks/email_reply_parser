@@ -179,6 +179,12 @@ class EmailReplyParser
         text.gsub! match[1], match[1].gsub("\n", " ") unless match[1] =~ /\n\n/
       end
 
+      # Some users may reply directly above a line of underscores.
+      # In order to ensure that these fragments are split correctly,
+      # make sure that all lines of underscores are preceded by
+      # at least two newline characters.
+      text.gsub!(/([^\n])(?=\n_{7}_+)$/m, "\\1\n")
+
       text
     end
 
@@ -235,16 +241,7 @@ class EmailReplyParser
       # and the Fragment starts with a common signature indicator.
       # Mark the current Fragment as a quote if the current line is empty
       # and the Fragment starts with a multiline quote header.
-      if @fragment && (line == EMPTY || last)
-        is_signature = signature_line?(@fragment.lines.first)
-        if is_signature
-          @fragment.signature = true
-          finish_fragment
-        elsif multiline_quote_header_in_fragment?
-          @fragment.quoted = true
-          finish_fragment
-        end
-      end
+      scan_signature_or_quote if @fragment && line == EMPTY
 
       # We're looking for leading `>`'s to see if this line is part of a
       # quoted Fragment.
@@ -261,6 +258,17 @@ class EmailReplyParser
       end
 
       @fragment.add_line(line)
+      scan_signature_or_quote if last
+    end
+
+    def scan_signature_or_quote
+      if signature_line?(@fragment.lines.first)
+        @fragment.signature = true
+        finish_fragment
+      elsif multiline_quote_header_in_fragment?
+        @fragment.quoted = true
+        finish_fragment
+      end
     end
 
     # Returns +true+ if the current block in the current fragment has
@@ -437,7 +445,7 @@ class EmailReplyParser
     end
 
     def inspect
-      to_s.inspect
+      "#{super.inspect} : #{to_s.inspect}"
     end
   end
 end

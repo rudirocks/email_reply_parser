@@ -130,6 +130,12 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
   def test_email_body_is_signature
     reply = EmailReplyParser.parse_reply "-- \nLes Hill\nleshill@gmail.com"
     assert_equal "", reply
+
+    reply = EmailReplyParser.parse_reply "From: abc\nTo: Les Hill\nDate: 31/01/2013\nSubject: foo"
+    assert_equal "", reply
+
+    reply = EmailReplyParser.parse_reply "On Fri, Feb 24, 2012 at 10:19 AM, <boris@example.com> wrote:\n\n> hello"
+    assert_equal "", reply
   end
 
   def test_deals_with_multiline_reply_headers
