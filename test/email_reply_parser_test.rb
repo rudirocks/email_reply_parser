@@ -10,6 +10,12 @@ require dir + '..' + 'lib' + 'email_reply_parser'
 EMAIL_FIXTURE_PATH = dir + 'emails'
 
 class EmailReplyParserTest < Test::Unit::TestCase
+  def test_does_not_modify_input_string
+    original = "The Quick Brown Fox Jumps Over The Lazy Dog"
+    EmailReplyParser.read original
+    assert_equal "The Quick Brown Fox Jumps Over The Lazy Dog", original
+  end
+
   def test_reads_simple_body
     reply = email(:email_1_1)
     assert_equal 3, reply.fragments.size
@@ -142,10 +148,8 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /Steps 0-2/, reply.fragments[1].to_s
   end
 
-  def test_does_not_modify_input_string
-    original = "The Quick Brown Fox Jumps Over The Lazy Dog"
-    EmailReplyParser.read original
-    assert_equal "The Quick Brown Fox Jumps Over The Lazy Dog", original
+  def test_parse_out_date_name_email_header
+    assert_equal "Hello", visible_text(:email_1_8)
   end
 
   def test_returns_only_the_visible_fragments_as_a_string
@@ -363,12 +367,6 @@ This line would have been considered part of the header line."
     address = "bob@gmail.com"
     email = EmailReplyParser::Email.new
     assert_equal "bob@gmail.com", email.send(:parse_email_from_address, address)
-  end
-
-  def test_reverse_regexp_string
-    email = EmailReplyParser::Email.new
-    regexp = "(a(b|c).*\ndef)$"
-    assert_equal Regexp.new("^(fed\n.*(c|b)a)", Regexp::IGNORECASE), email.send(:reverse_regexp, regexp)
   end
 
   def test_one_is_not_on

@@ -123,17 +123,12 @@ class EmailReplyParser
     end
 
   private
-    COMMON_REPLY_HEADER_REGEXES = [
-      /^(On(.+)wrote:)$/nm,
-      /^(Date:.*From:.*To:.*Subject:.*?)\n\n/nm,
-      /( *\*?From:.*Sent:.*To:.*Subject:.*?)\n\n/nm
-    ]
-    COMMON_REPLY_HEADER_REGEXES_REVERSED = [
-      /^:etorw.*nO$/n,
-      /^.*:tcejbuS.*:oT.*:morF.*:etaD$/n,
-      /^.*:tcejbuS.*:oT.*:tneS.*:morF\*?$/n
-    ]
     EMPTY = "".freeze
+
+    COMMON_REPLY_HEADER_REGEXES = [
+      /^On(.+)wrote:$/nm,
+      /\A\d{4}\/\d{1,2}\/\d{1,2}\s+.{1,80}\s<[^@]+@[^@]+>\Z/,
+    ]
 
     # Line optionally starts with spaces, contains two or more hyphens or
     # underscores, and ends with optional whitespace.
@@ -248,25 +243,10 @@ class EmailReplyParser
     #
     # Returns true if the line is a valid header, or false.
     def line_is_reply_header?(line)
-      COMMON_REPLY_HEADER_REGEXES_REVERSED.each do |regex|
-        return true if line =~ regex
+      COMMON_REPLY_HEADER_REGEXES.each do |regex|
+        return true if line.reverse =~ regex
       end
       false
-    end
-
-    # Tests the full text of the email to see if it contains a common reply
-    # header. If so, removes any newlines and leading whitespace from the reply
-    # header.
-    #
-    # text - A String email body.
-    #
-    # Returns nothing.
-    def oneline_reply_headers(text)
-      COMMON_REPLY_HEADER_REGEXES.each do |regex|
-        if text =~ regex
-          text.gsub!($1, $1.gsub("\n", " ").lstrip) and break
-        end
-      end
     end
 
     ### Line-by-Line Parsing
@@ -305,20 +285,11 @@ class EmailReplyParser
           ((@fragment.quoted? == is_quoted) ||
            (@fragment.quoted? && (line_is_reply_header?(line) || line == EMPTY)))
         finish_fragment
-        @fragment = Fragment.new(is_quoted)
+        @fragment = Fragment.new
+        @fragment.quoted = is_quoted
       end
 
       @fragment.add_line(line)
-    end
-
-    # Detects if a given line is a header above a quoted area.
-    #
-    # line - A String line of text from the email.
-    #
-    # Returns true if the line is a valid header, or false.
-    def quote_header?(line)
-      standard_header_regexp = reverse_regexp("On\s.+wrote:$")
-      line =~ standard_header_regexp
     end
 
     # Returns +true+ if the current block in the current fragment has
@@ -363,35 +334,6 @@ class EmailReplyParser
         end
       end
       return false
-    end
-
-    # reverses a regular expression
-    #
-    # regexp - String or Regexp that you want to reverse
-    # ignore_case - where to the returned Regexp should be case insensitive
-    #
-    # Returns Regexp
-    def reverse_regexp(regexp, ignore_case = true)
-      regexp_text = regexp.to_s.reverse
-      regexp_text.gsub!("*.", ".*")
-      regexp_text.gsub!("+.", ".+")
-      regexp_text.gsub!("$", "^")
-      regexp_text = reverse_parentheses(regexp_text)
-
-      regexp_options = []
-      regexp_options << Regexp::IGNORECASE if ignore_case
-      Regexp.new(regexp_text, *regexp_options)
-    end
-
-    # reverses parentheses in a string
-    #
-    # text - String or Regexp that you want to reverse
-    #
-    # Returns String
-    def reverse_parentheses(text)
-      text.gsub!(/\)(.*)\(/m, '(\1)')  #reverses outter parentheses
-      text.gsub!(/\)(.*?)\(/m, '(\1)')  #reverses nested parentheses
-      text
     end
 
     # Detects if a given line is the beginning of a signature
@@ -473,9 +415,8 @@ class EmailReplyParser
     # is finished.
     attr_reader :content
 
-    def initialize(quoted)
-      self.signature = self.reply_header = self.hidden = false
-      self.quoted = quoted
+    def initialize
+      self.quoted = self.signature = self.reply_header = self.hidden = false
       @lines = []
       @current_block = []
       @content = nil
@@ -501,8 +442,6 @@ class EmailReplyParser
     end
 
     # Builds the string content by joining the lines and reversing them.
-    #
-    # Returns nothing.
     def finish
       @content = @lines.join("\n")
       @lines = @current_block = nil
