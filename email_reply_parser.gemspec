@@ -22,8 +22,8 @@ Gem::Specification.new do |s|
 
   ## Make sure your summary is short. The description may be as long
   ## as you like.
-  s.summary     = "Short description used in Gem listings."
-  s.description = "Long description. Maybe copied from the README."
+  s.summary     = "Email Reply Parser"
+  s.description = "EmailReplyParser is a small library to parse plain text email content to return only the reply."
 
   ## List the primary authors. If there are a bunch of authors, it's probably
   ## better to set the email to an email list or something. If you don't have
@@ -61,31 +61,17 @@ Gem::Specification.new do |s|
   ## contents of your Git repository via the gemspec task. DO NOT REMOVE
   ## THE MANIFEST COMMENTS, they are used as delimiters by the task.
   # = MANIFEST =
-  s.files = %w[
-    LICENSE
-    README.md
-    Rakefile
-    email_reply_parser.gemspec
-    lib/email_reply_parser.rb
-    test/email_reply_parser_test.rb
-    test/emails/correct_sig.txt
-    test/emails/email_1_1.txt
-    test/emails/email_1_2.txt
-    test/emails/email_1_3.txt
-    test/emails/email_1_4.txt
-    test/emails/email_1_5.txt
-    test/emails/email_1_6.txt
-    test/emails/email_2_1.txt
-    test/emails/email_BlackBerry.txt
-    test/emails/email_bullets.txt
-    test/emails/email_iPhone.txt
-    test/emails/email_multi_word_sent_from_my_mobile_device.txt
-    test/emails/email_sent_from_my_not_signature.txt
+  s.files = Dir.glob("lib/**/*") + [
+     "LICENSE",
+     "README.md",
+     "Rakefile",
+     "email_reply_parser.gemspec"
   ]
+
   # = MANIFEST =
 
   ## Test files will be grabbed from the file list. Make sure the path glob
   ## matches what you actually use.
-  s.test_files = s.files.select { |path| path =~ /^test\/.*_test\.rb/ }
+  s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
 end
 
