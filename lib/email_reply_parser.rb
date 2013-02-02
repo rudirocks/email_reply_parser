@@ -130,20 +130,20 @@ class EmailReplyParser
       /\A\d{4}\/\d{1,2}\/\d{1,2}\s+.{1,80}\s<[^@]+@[^@]+>\Z/,
     ]
 
-    # Line optionally starts with spaces, contains two or more hyphens or
+    # Line optionally starts with whitespace, contains two or more hyphens or
     # underscores, and ends with optional whitespace.
     # Example: '---' or '___' or '---   '
     MULTI_LINE_SIGNATURE_REGEX = /^\s*[-_]{2,}\s*$/
 
-    # Word character followed by hyphen, ending the line with optional spaces.
+    # Line optionally starts with whitespace, followed by one hyphen, followed by a word character
     # Example: '-Sandro'
-    ONE_LINE_SIGNATURE_REGEX = /(\w-)\s*$/
+    ONE_LINE_SIGNATURE_REGEX = /^\s*-\w/
 
-    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s-]+#{"Original Message".reverse}[\s-]+$/
+    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s-]+Original Message[\s-]+$/
 
     # No block-quotes (> or <), followed by up to three words, followed by "Sent from my".
     # Example: "Sent from my iPhone 3G"
-    SENT_FROM_REGEX = /(^(>.*<\s*)*(\w+\s*){1,3} #{"Sent from my".reverse}$)/
+    SENT_FROM_REGEX = /^Sent from my (\s*\w+){1,3}(\s*<.*>)?$/
 
     SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
 
@@ -244,7 +244,7 @@ class EmailReplyParser
     # Returns true if the line is a valid header, or false.
     def line_is_reply_header?(line)
       COMMON_REPLY_HEADER_REGEXES.each do |regex|
-        return true if line.reverse =~ regex
+        return true if line =~ regex
       end
       false
     end
@@ -259,12 +259,13 @@ class EmailReplyParser
     # Returns nothing.
     def scan_line(line)
       line.chomp!("\n")
-      line.lstrip! unless signature_line?(line)
+      line.reverse!
+      line.rstrip! unless signature_line?(line)
 
       # Mark the current Fragment as a signature if the current line is empty
       # and the Fragment starts with a common signature indicator.
       if @fragment && line == EMPTY
-        is_signature = signature_line?(@fragment.lines.last)
+        is_signature = signature_line?(@fragment.lines.first)
         if is_signature
           @fragment.signature = true
           finish_fragment
@@ -276,7 +277,7 @@ class EmailReplyParser
 
       # We're looking for leading `>`'s to see if this line is part of a
       # quoted Fragment.
-      is_quoted = !!(line =~ /(>+)$/n)
+      is_quoted = !!(line =~ /^>+/n)
 
       # If the line matches the current fragment, add it.  Note that a common
       # reply header also counts as part of the quoted Fragment, even though
@@ -357,7 +358,7 @@ class EmailReplyParser
 
     #generates regexp which always for additional words or initials between first and last names
     def generate_regexp_for_name
-      name_parts = @from_name_normalized.reverse.split(" ")
+      name_parts = @from_name_normalized.split(" ")
       seperator = '[\w.\s]*'
       regexp = Regexp.new(name_parts.join(seperator), Regexp::IGNORECASE)
     end
@@ -429,23 +430,22 @@ class EmailReplyParser
 
     def add_line(line)
       return unless line
-      @lines << line
+      @lines.insert(0, line)
       if line == ""
         @current_block.clear
       else
-        @current_block << line
+        @current_block.insert(0, line)
       end
     end
 
     def current_block
-      @current_block.join("\n").reverse
+      @current_block.join("\n")
     end
 
     # Builds the string content by joining the lines and reversing them.
     def finish
       @content = @lines.join("\n")
       @lines = @current_block = nil
-      @content.reverse!
     end
 
     def to_s

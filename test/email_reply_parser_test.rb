@@ -152,6 +152,10 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Hello", visible_text(:email_1_8)
   end
 
+  def test_signature_prefixed_by_whitespace
+    assert_equal "Foo", visible_text(:email_1_9)
+  end
+
   def test_returns_only_the_visible_fragments_as_a_string
     reply = email(:email_2_1)
     assert_equal reply.fragments.select{|r| !r.hidden?}.map{|r| r.to_s}.join("\n").rstrip, reply.visible_text
