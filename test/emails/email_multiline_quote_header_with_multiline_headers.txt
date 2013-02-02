@@ -1,0 +1,14 @@
+Foo
+
+Subject: 	[ERROR] Example unavailable: 
+(ExampleClassName::SomeError) "Etiam dignissim imperdiet metus.
+error, unexpected $duh near 't'"
+Date: 	Fri, 01 Feb 2013 07:50:06 +0000
+cc: esther@example.com
+            mathias@example.com
+ok@example.com
+From: 	Application Error <noreply@example.com>
+Reply-To: 	Example <noreply@example.com>
+To: 	alert@example.com
+
+Thank you for recently participating in our class. We're interested in feedback. Please reply to this email. 

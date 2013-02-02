@@ -340,23 +340,29 @@ class EmailReplyParser
     # label: some text possibly indented text that belongs to the previous line
     #
     # and where label is a value from +QUOTE_HEADER_LABELS+ that appears
-    # only once in the first 4 lines and where each group of labels
+    # only once in the first 4 lines and where each group of a label
     # is represented at most once.
     def multiline_quote_header_in_fragment?
-      block_text = @fragment.current_block
-
-      # fold lines
-      block_text = block_text.gsub(/\n\s\s(.*)$/, ' \1')
-
-      # consider first 4 lines only
-      lines = block_text.split("\n")[0..3]
-
+      folding = false
       label_groups = []
-      lines.each do |line|
-        return false unless line =~ /^([^:]+):/
-        label_groups << QUOTE_HEADER_LABELS[$1.downcase]
+      @fragment.current_block.split("\n").each do |line|
+        if line =~ /\A([^:]+):\s/
+          label = QUOTE_HEADER_LABELS[$1.downcase]
+          if label
+            return false if label_groups.include?(label)
+            return true if label_groups.length == 3
+            label_groups << label
+            folding = true
+          elsif !folding
+            return false
+          end
+        elsif !folding
+          return false
+        else
+          folding = true
+        end
       end
-      label_groups.compact.uniq.length == 4
+      return false
     end
 
     # reverses a regular expression

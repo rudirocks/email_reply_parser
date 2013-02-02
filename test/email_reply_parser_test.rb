@@ -300,7 +300,7 @@ This line would have been considered part of the header line."
   end
 
   def test_multiline_quote_header_pt_br
-    assert_equal "Foo!", visible_text(:email_multiline_quote_header_pt_br)
+    assert_equal "Foo-pt-br", visible_text(:email_multiline_quote_header_pt_br)
   end
 
   def test_multiline_quote_header_es_mx
@@ -315,8 +315,8 @@ This line would have been considered part of the header line."
     assert_equal "Foo", visible_text(:email_multiline_quote_header_with_cc)
   end
 
-  def test_multiline_quote_header_with_multiline_cc
-    assert_equal "Foo", visible_text(:email_multiline_quote_header_with_multiline_cc)
+  def test_multiline_quote_header_with_multiline_headers
+    assert_equal "Foo", visible_text(:email_multiline_quote_header_with_multiline_headers)
   end
 
   def test_parsing_name_from_address
