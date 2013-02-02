@@ -337,6 +337,10 @@ This line would have been considered part of the header line."
     assert_equal "Foo", visible_text(:email_multiline_quote_header_with_multiline_headers)
   end
 
+  def test_multiline_quote_header_with_asterisks
+    assert_equal "Outlook with a reply", visible_text(:email_multiline_quote_header_with_asterisks)
+  end
+
   def test_parsing_name_from_address
     address = "Bob Jones <bob@gmail.com>"
     email = EmailReplyParser::Email.new
