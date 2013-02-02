@@ -177,6 +177,10 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Reply from the hottest mail.", visible_text(:email_2_6)
   end
 
+  def test_parse_original_message
+    assert_equal "Foo", visible_text(:email_2_7)
+  end
+
   def test_parse_out_sent_from_iPhone
     assert_equal "Here is another email", visible_text(:email_iPhone)
   end

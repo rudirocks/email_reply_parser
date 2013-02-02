@@ -78,7 +78,6 @@ class EmailReplyParser
     # from_address - from address of the email (optional)
     #
     # Returns this same Email instance.
-
     def read(text, from_address = "")
       # parse out the from name if one exists and save for use later
       @from_name_raw = parse_raw_name_from_address(from_address)
@@ -145,11 +144,13 @@ class EmailReplyParser
     # Example: '-Sandro'
     ONE_LINE_SIGNATURE_REGEX = /(\w-)\s*$/
 
+    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s-]+#{"Original Message".reverse}[\s-]+$/
+
     # No block-quotes (> or <), followed by up to three words, followed by "Sent from my".
     # Example: "Sent from my iPhone 3G"
     SENT_FROM_REGEX = /(^(>.*<\s*)*(\w+\s*){1,3} #{"Sent from my".reverse}$)/
 
-    SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
+    SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
 
     # TODO: refactor out in a i18n.yml file
     # Supports English, French, Es-Mexican, Pt-Brazilian
@@ -159,7 +160,7 @@ class EmailReplyParser
       :to => ["To", "Para", "A"],
       :cc => ["CC"],
       :reply_to => ["Reply-To"],
-      :date => ["Date", "Sent", "Enviada em", "Fecha"],
+      :date => ["Date", "Sent", "Enviado", "Enviada em", "Fecha"],
       :subject => ["Subject", "Assunto", "Asunto", "Objet"]
     }.map {|group, labels| labels.map {|label| [label.downcase, group]}}.flatten]
 
