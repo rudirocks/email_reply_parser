@@ -1,0 +1,11 @@
+Foo
+
+De: john@example.com
+Para: shelly@example.com
+NotExists: hello
+De: john@example.com
+Para: shelly@example.com
+Fecha: 01/02/2013 05:04 p.m.
+Asunto: Requerimiento #12345
+
+THE END!

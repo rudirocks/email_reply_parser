@@ -1,0 +1,10 @@
+Foo
+
+De: john@example.com
+Para: shelly@example.com
+cc: esther@example.com
+            mathias@example.com
+Fecha: 01/02/2013 05:04 p.m.
+Asunto: Requerimiento #12345
+
+Thank you for recently participating in our class. We're interested in feedback. Please reply to this email. 

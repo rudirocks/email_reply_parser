@@ -154,59 +154,49 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
   end
 
   def test_parse_out_just_top_for_outlook_reply
-    reply = email(:email_2_1)
-    assert_equal "Outlook with a reply", reply.visible_text
+    assert_equal "Outlook with a reply", visible_text(:email_2_1)
   end
 
   def test_parse_out_just_top_for_outlook_with_reply_directly_above_line
-    reply = email(:email_2_2)
-    assert_equal "Outlook with a reply directly above line", reply.visible_text
+    assert_equal "Outlook with a reply directly above line", visible_text(:email_2_2)
   end
 
   def test_parse_out_just_top_for_windows_8_mail
-    reply = email(:email_2_3)
-    assert_equal "This one is from Windows 8 Mail (preview).", reply.visible_text
+    assert_equal "This one is from Windows 8 Mail (preview).", visible_text(:email_2_3)
   end
 
   def test_parse_out_just_top_for_outlook_2007
-    reply = email(:email_2_4)
-    assert_equal "Here's one from Outlook 2007.", reply.visible_text
+    assert_equal "Here's one from Outlook 2007.", visible_text(:email_2_4)
   end
 
   def test_parse_out_just_top_for_more_outlook_2013
-    reply = email(:email_2_5)
-    assert_equal "Didn't have the patience to wait for Outlook 2013 to sync my Gmail, but\nhere's a reply to a different message.", reply.visible_text
+    assert_equal "One from Outlook 2013?", visible_text(:email_2_5)
   end
 
   def test_parse_out_just_top_for_hotmail_reply
-    reply = email(:email_2_6)
-    assert_equal "Reply from the hottest mail.", reply.visible_text
+    assert_equal "Reply from the hottest mail.", visible_text(:email_2_6)
   end
 
   def test_parse_out_sent_from_iPhone
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_iPhone.txt").to_s
-    assert_equal "Here is another email", EmailReplyParser.parse_reply(body)
+    assert_equal "Here is another email", visible_text(:email_iPhone)
   end
 
   def test_parse_out_sent_from_BlackBerry
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_BlackBerry.txt").to_s
-    assert_equal "Here is another email", EmailReplyParser.parse_reply(body)
+    assert_equal "Here is another email", visible_text(:email_BlackBerry)
   end
 
   def test_parse_out_send_from_multiword_mobile_device
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_multi_word_sent_from_my_mobile_device.txt").to_s
-    assert_equal "Here is another email", EmailReplyParser.parse_reply(body)
+    assert_equal "Here is another email", visible_text(:email_multi_word_sent_from_my_mobile_device)
   end
 
   def test_do_not_parse_out_send_from_in_regular_sentence
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_sent_from_my_not_signature.txt").to_s
-    assert_equal "Here is another email\n\nSent from my desk, is much easier then my mobile phone.", EmailReplyParser.parse_reply(body)
+    expected = "Here is another email\n\nSent from my desk, is much easier then my mobile phone."
+    assert_equal expected, visible_text(:email_sent_from_my_not_signature)
   end
 
   def test_retains_bullets
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_bullets.txt").to_s
-    assert_equal "test 2 this should list second\n\nand have spaces\n\nand retain this formatting\n\n\n   - how about bullets\n   - and another",
-      EmailReplyParser.parse_reply(body)
+    expected = "test 2 this should list second\n\nand have spaces\n\nand retain this formatting\n\n\n   - how about bullets\n   - and another"
+    assert_equal expected, visible_text(:email_bullets)
   end
 
   def test_parse_reply
@@ -254,7 +244,7 @@ decreased chances of code becoming a swarm of angry hornets.  I've
 been transparent about the initial increased development time while
 learning the technology."
 
-    assert_equal expected_body, EmailReplyParser.parse_reply(body) 
+    assert_equal expected_body, EmailReplyParser.parse_reply(body)
   end
 
   def test_2nd_paragraph_starts_with_on
@@ -264,13 +254,13 @@ learning the technology."
 On friday when I tried it didn't work as expect.
 
 This line would have been considered part of the header line."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body) 
+    assert_equal expected_body, EmailReplyParser.parse_reply(body)
   end
 
   def test_from_email_in_quote_header
     body = IO.read EMAIL_FIXTURE_PATH.join("email_from_address_in_quote_header.txt").to_s
     expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "shelly@example.com") 
+    assert_equal expected_body, EmailReplyParser.parse_reply(body, "shelly@example.com")
   end
 
   def test_do_not_make_any_line_with_from_address_quote_heading
@@ -282,31 +272,47 @@ This line would have been considered part of the header line."
   def test_from_name_in_quote_header
     body = IO.read EMAIL_FIXTURE_PATH.join("email_from_name_in_quote_header.txt").to_s
     expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
+    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>")
   end
 
   def test_multiline_quote_header_from_first
     body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_from_first.txt").to_s
     expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
+    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>")
+  end
+
+  def test_multiline_quote_header_none
+    text = visible_text(:email_multiline_quote_header_none)
+    assert_match /Foo/, text
+    assert_match /THE END!/, text
   end
 
   def test_multiline_quote_header_from_to_date_subject
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_from_to_date_subject.txt").to_s
-    expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_from_to_date_subject)
   end
 
-  def test_multiline_quote_header_from_to_date_subject
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_from_replyto_date_to_subject.txt").to_s
-    expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
+  def test_multiline_quote_header_from_replyto_date_to_subject
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_from_replyto_date_to_subject)
   end
 
   def test_multiline_quote_header_pt_br
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_pt_br.txt").to_s
-    expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
-    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_pt_br)
+  end
+
+  def test_multiline_quote_header_es_mx
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_es_mx)
+  end
+
+  def test_multiline_quote_header_fr
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_fr)
+  end
+
+  def test_multiline_quote_header_with_cc
+    assert_equal "Foo", visible_text(:email_multiline_quote_header_with_cc)
+  end
+
+  def test_multiline_quote_header_with_multiline_cc
+    assert_equal "Foo", visible_text(:email_multiline_quote_header_with_multiline_cc)
   end
 
   def test_parsing_name_from_address
@@ -368,7 +374,7 @@ This line would have been considered part of the header line."
     name = "Smith, John"
     assert_equal "John Smith", email.send(:normalize_name, name)
   end
- 
+
   def test_normalize_name_first_last_and_qualification
     email = EmailReplyParser::Email.new
     name = "John Smith, MD"
@@ -385,8 +391,15 @@ This line would have been considered part of the header line."
     assert_equal "", EmailReplyParser.parse_reply(body)
   end
 
-  def email(name)
-    body = IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
-    EmailReplyParser.read body
-  end
+  private
+
+    def email(name)
+      body = IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
+      EmailReplyParser.read(body)
+    end
+
+    def visible_text(name)
+      email(name).visible_text
+    end
+
 end
