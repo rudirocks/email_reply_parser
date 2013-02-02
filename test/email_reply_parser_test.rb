@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'rubygems'
 require 'test/unit'
 require 'pathname'
@@ -87,6 +88,44 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /^-- \nrick/, reply.fragments[1].to_s
   end
 
+  def test_reads_email_containing_hyphens
+    reply = email :email_hyphens
+    assert_equal 1, reply.fragments.size
+    body = reply.fragments[0].to_s
+    assert_match /^Keep in mind/, body
+    assert_match /their physical exam.$/, body
+  end
+
+  def test_arbitrary_hypens_and_underscores
+    assert_one_signature = lambda do |reply|
+      assert_equal 2, reply.fragments.size
+      assert_equal [false, true], reply.fragments.map { |f| f.hidden? }
+    end
+
+    reply = EmailReplyParser.read "here __and__ now.\n\n---\nSandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "--okay\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "__okay\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "--1337\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "__1337\n\n-Sandro"
+    assert_one_signature.call reply
+
+    reply = EmailReplyParser.read "data -- __ foo\n\n-Sandro"
+    assert_one_signature.call reply
+  end
+
+  def test_email_body_is_signature
+    reply = EmailReplyParser.parse_reply "-- \nLes Hill\nleshill@gmail.com"
+    assert_equal "", reply
+  end
+
   def test_deals_with_multiline_reply_headers
     reply = email :email_1_6
 
@@ -115,13 +154,33 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
   end
 
   def test_parse_out_just_top_for_outlook_reply
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_2_1.txt").to_s
-    assert_equal "Outlook with a reply", EmailReplyParser.parse_reply(body)
+    reply = email(:email_2_1)
+    assert_equal "Outlook with a reply", reply.visible_text
   end
 
   def test_parse_out_just_top_for_outlook_with_reply_directly_above_line
-    body = IO.read EMAIL_FIXTURE_PATH.join("email_2_2.txt").to_s
-    assert_equal "Outlook with a reply directly above line", EmailReplyParser.parse_reply(body)
+    reply = email(:email_2_2)
+    assert_equal "Outlook with a reply directly above line", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_windows_8_mail
+    reply = email(:email_2_3)
+    assert_equal "This one is from Windows 8 Mail (preview).", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_outlook_2007
+    reply = email(:email_2_4)
+    assert_equal "Here's one from Outlook 2007.", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_more_outlook_2013
+    reply = email(:email_2_5)
+    assert_equal "Didn't have the patience to wait for Outlook 2013 to sync my Gmail, but\nhere's a reply to a different message.", reply.visible_text
+  end
+
+  def test_parse_out_just_top_for_hotmail_reply
+    reply = email(:email_2_6)
+    assert_equal "Reply from the hottest mail.", reply.visible_text
   end
 
   def test_parse_out_sent_from_iPhone
@@ -238,18 +297,17 @@ This line would have been considered part of the header line."
     assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
   end
 
-def test_multiline_quote_header_from_to_date_subject
+  def test_multiline_quote_header_from_to_date_subject
     body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_from_replyto_date_to_subject.txt").to_s
     expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
     assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
   end
 
-def test_multiline_quote_header_pt_br
+  def test_multiline_quote_header_pt_br
     body = IO.read EMAIL_FIXTURE_PATH.join("email_multiline_quote_header_pt_br.txt").to_s
     expected_body = "I have gained valuable experience from working with students from other cultures. They bring a significantly different perspective to the work we do. I have also had the opportunity to practice making myself very clear in discussion, so that everyone understands. I've also seen how different our culture is to them, in their reactions to what I think is a normal approach to assignments, and to life in general."
     assert_equal expected_body, EmailReplyParser.parse_reply(body, "Smith, Shelly <shelly@example.com>") 
   end
-
 
   def test_parsing_name_from_address
     address = "Bob Jones <bob@gmail.com>"
@@ -317,6 +375,15 @@ def test_multiline_quote_header_pt_br
     assert_equal "John Smith", email.send(:normalize_name, name)
   end
 
+  def test_parse_nil_body
+    body = nil
+    assert_equal "", EmailReplyParser.parse_reply(body)
+  end
+
+  def test_parse_empty_body
+    body = ""
+    assert_equal "", EmailReplyParser.parse_reply(body)
+  end
 
   def email(name)
     body = IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
