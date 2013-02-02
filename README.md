@@ -74,19 +74,11 @@ Possible solution: Remove "reply@reply.github.com" lines...
 
 ### Weird Signatures
 
-Lines starting with `-` or `_` sometimes mark the beginning of
-signatures:
-
-    Hello
-
-    -- 
-    Rick
-
 Not everyone follows this convention:
 
     Hello
 
-    Mr Rick Olson
+    Saludos!!!!!!!!!!!!!!
     Galactic President Superstar Mc Awesomeville
     GitHub
 

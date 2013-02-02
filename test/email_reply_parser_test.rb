@@ -181,6 +181,16 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Foo", visible_text(:email_2_7)
   end
 
+  def test_parse_weird_signature
+    assert_equal "Hello", visible_text(:email_2_8)
+  end
+
+  def test_parse_weird_signature_by_name
+    body = IO.read EMAIL_FIXTURE_PATH.join("email_2_9.txt").to_s
+    expected_body = "Hello"
+    assert_equal expected_body, EmailReplyParser.parse_reply(body, "Rick Olson <rick.olson@example.com>")
+  end
+
   def test_parse_out_sent_from_iPhone
     assert_equal "Here is another email", visible_text(:email_iPhone)
   end
