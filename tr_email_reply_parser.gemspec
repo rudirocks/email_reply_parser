@@ -61,13 +61,59 @@ Gem::Specification.new do |s|
   ## contents of your Git repository via the gemspec task. DO NOT REMOVE
   ## THE MANIFEST COMMENTS, they are used as delimiters by the task.
   # = MANIFEST =
-  s.files = Dir.glob("lib/**/*") + [
-     "LICENSE",
-     "README.md",
-     "Rakefile",
-     "email_reply_parser.gemspec"
+  s.files = %w[
+    LICENSE
+    README.md
+    Rakefile
+    lib/tr_email_reply_parser.rb
+    test/email_reply_parser_test.rb
+    test/emails/correct_sig.txt
+    test/emails/email_1_1.txt
+    test/emails/email_1_2.txt
+    test/emails/email_1_3.txt
+    test/emails/email_1_4.txt
+    test/emails/email_1_5.txt
+    test/emails/email_1_6.txt
+    test/emails/email_1_7.txt
+    test/emails/email_1_8.txt
+    test/emails/email_1_9.txt
+    test/emails/email_2_1.txt
+    test/emails/email_2_2.txt
+    test/emails/email_2_3.txt
+    test/emails/email_2_4.txt
+    test/emails/email_2_5.txt
+    test/emails/email_2_6.txt
+    test/emails/email_2_7.txt
+    test/emails/email_2_8.txt
+    test/emails/email_2_9.txt
+    test/emails/email_2nd_paragraph_starting_with_on.txt
+    test/emails/email_BlackBerry.txt
+    test/emails/email_bullets.txt
+    test/emails/email_from_address_in_quote_header.txt
+    test/emails/email_from_name_in_quote_header.txt
+    test/emails/email_hyphens.txt
+    test/emails/email_iPhone.txt
+    test/emails/email_mentions_own_email_address.txt
+    test/emails/email_mentions_own_name.txt
+    test/emails/email_multi_word_sent_from_my_mobile_device.txt
+    test/emails/email_multiline_quote_header_es_mx.txt
+    test/emails/email_multiline_quote_header_fr.txt
+    test/emails/email_multiline_quote_header_from_first.txt
+    test/emails/email_multiline_quote_header_from_replyto_date_to_subject.txt
+    test/emails/email_multiline_quote_header_from_to_date_subject.txt
+    test/emails/email_multiline_quote_header_none.txt
+    test/emails/email_multiline_quote_header_pt_br.txt
+    test/emails/email_multiline_quote_header_with_asterisks.txt
+    test/emails/email_multiline_quote_header_with_cc.txt
+    test/emails/email_multiline_quote_header_with_multiline_headers.txt
+    test/emails/email_no_signature_deliminator.txt
+    test/emails/email_no_signature_deliminator_adds_a_middle_initial.txt
+    test/emails/email_one_is_not_on.txt
+    test/emails/email_sent_from_my_not_signature.txt
+    test/emails/email_was_showing_as_nothing_visible.txt
+    test/emails/new_content/email_1_2.txt
+    tr_email_reply_parser.gemspec
   ]
-
   # = MANIFEST =
 
   ## Test files will be grabbed from the file list. Make sure the path glob
