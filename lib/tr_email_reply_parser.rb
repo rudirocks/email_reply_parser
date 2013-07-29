@@ -52,8 +52,8 @@ class EmailReplyParser
     self.read(text, from_address).visible_text
   end
 
-  def self.parse_new_content(text)
-    self.read(text).new_content
+  def self.parse_new_content(text, from_address = "")
+    self.read(text, from_address).new_content
   end
 
   ### Emails
@@ -279,7 +279,7 @@ class EmailReplyParser
     # Returns true if the fragment has header, or false.
 
     def multiline_quote_header_in_fragment?(fragment)
-      fragment_text = @fragment.lines.join("\n")
+      fragment_text = fragment.lines.join("\n")
       
       from_labels = ["From", "De"]
       to_labels = ["To", "Para"]
