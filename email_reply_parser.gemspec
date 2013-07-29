@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   ## Leave these as is they will be modified for you by the rake gemspec task.
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
-  s.name              = 'email_reply_parser'
+  s.name              = 'tr-email_reply_parser'
   s.version           = EmailReplyParser::VERSION
   s.date              = Time.now.strftime('%Y-%m-%d')
   s.rubyforge_project = 'email_reply_parser'
@@ -75,12 +75,15 @@ Gem::Specification.new do |s|
     test/emails/email_1_4.txt
     test/emails/email_1_5.txt
     test/emails/email_1_6.txt
+    test/emails/email_1_7.txt
     test/emails/email_2_1.txt
     test/emails/email_BlackBerry.txt
     test/emails/email_bullets.txt
     test/emails/email_iPhone.txt
     test/emails/email_multi_word_sent_from_my_mobile_device.txt
+    test/emails/email_one_is_not_on.txt
     test/emails/email_sent_from_my_not_signature.txt
+    test/emails/new_content/email_1_2.txt
   ]
   # = MANIFEST =
 
