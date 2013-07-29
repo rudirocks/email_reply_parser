@@ -156,8 +156,17 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_match /^On Oct 1, 2012/, reply.fragments[1].to_s
   end
 
+  def test_new_content
+    body = read("email_1_2")
+    correct = read(File.join("new_content", "email_1_2"))
+    assert_equal correct, EmailReplyParser.read(body).new_content
+  end
+
+  def read(name)
+    IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
+  end
+
   def email(name)
-    body = IO.read EMAIL_FIXTURE_PATH.join("#{name}.txt").to_s
-    EmailReplyParser.read body
+    EmailReplyParser.read(read(name))
   end
 end

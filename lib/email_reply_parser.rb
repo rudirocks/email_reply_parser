@@ -50,6 +50,10 @@ class EmailReplyParser
     self.read(text).visible_text
   end
 
+  def self.parse_new_content(text)
+    self.read(text).new_content
+  end
+
   ### Emails
 
   # An Email instance represents a parsed body String.
@@ -66,6 +70,10 @@ class EmailReplyParser
     # Returns a String.
     def visible_text
       fragments.select{|f| !f.hidden?}.map{|f| f.to_s}.join("\n").rstrip
+    end
+
+    def new_content
+      fragments.select{|f| !f.quoted? && !f.hidden? && !f.signature?}.map{|f| f.to_s}.join("\n").rstrip
     end
 
     # Splits the given text into a list of Fragments.  This is roughly done by
