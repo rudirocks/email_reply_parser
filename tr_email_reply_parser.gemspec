@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.name              = 'tr_email_reply_parser'
   s.version           = EmailReplyParser::VERSION
   s.date              = Time.now.strftime('%Y-%m-%d')
-  s.rubyforge_project = 'email_reply_parser'
+  s.rubyforge_project = 'tr_email_reply_parser'
 
   ## Make sure your summary is short. The description may be as long
   ## as you like.
@@ -65,7 +65,6 @@ Gem::Specification.new do |s|
     LICENSE
     README.md
     Rakefile
-    email_reply_parser.gemspec
     lib/tr_email_reply_parser.rb
     test/email_reply_parser_test.rb
     test/emails/correct_sig.txt
@@ -84,6 +83,7 @@ Gem::Specification.new do |s|
     test/emails/email_one_is_not_on.txt
     test/emails/email_sent_from_my_not_signature.txt
     test/emails/new_content/email_1_2.txt
+    tr_email_reply_parser.gemspec
   ]
   # = MANIFEST =
 
