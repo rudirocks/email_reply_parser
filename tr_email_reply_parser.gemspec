@@ -76,12 +76,25 @@ Gem::Specification.new do |s|
     test/emails/email_1_6.txt
     test/emails/email_1_7.txt
     test/emails/email_2_1.txt
+    test/emails/email_2_2.txt
+    test/emails/email_2nd_paragraph_starting_with_on.txt
     test/emails/email_BlackBerry.txt
     test/emails/email_bullets.txt
+    test/emails/email_from_address_in_quote_header.txt
+    test/emails/email_from_name_in_quote_header.txt
     test/emails/email_iPhone.txt
+    test/emails/email_mentions_own_email_address.txt
+    test/emails/email_mentions_own_name.txt
     test/emails/email_multi_word_sent_from_my_mobile_device.txt
+    test/emails/email_multiline_quote_header_from_first.txt
+    test/emails/email_multiline_quote_header_from_replyto_date_to_subject.txt
+    test/emails/email_multiline_quote_header_from_to_date_subject.txt
+    test/emails/email_multiline_quote_header_pt_br.txt
+    test/emails/email_no_signature_deliminator.txt
+    test/emails/email_no_signature_deliminator_adds_a_middle_initial.txt
     test/emails/email_one_is_not_on.txt
     test/emails/email_sent_from_my_not_signature.txt
+    test/emails/email_was_showing_as_nothing_visible.txt
     test/emails/new_content/email_1_2.txt
     tr_email_reply_parser.gemspec
   ]
