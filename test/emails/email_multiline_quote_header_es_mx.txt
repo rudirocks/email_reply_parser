@@ -1,8 +1,8 @@
-Foo-pt-br
+Foo!
 
 De: john@example.com
-Enviada em: sexta-feira, 27 de julho de 2012 15:09
-Para: shelly@example.com 
-Assunto: Tell us what you learned.
+Para: shelly@example.com
+Fecha: 01/02/2013 05:04 p.m.
+Asunto: Requerimiento #12345
 
 Thank you for recently participating in our class. We're interested in feedback. Please reply to this email. 

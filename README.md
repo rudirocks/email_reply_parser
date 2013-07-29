@@ -1,30 +1,22 @@
 # Email Reply Parser
 
+[![Build Status](https://secure.travis-ci.org/lawrencepit/email_reply_parser.png?branch=master)](http://travis-ci.org/lawrencepit/email_reply_parser)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/lawrencepit/email_reply_parser)
+[![Gem Version](https://fury-badge.herokuapp.com/rb/email_reply_parser.png)](http://badge.fury.io/rb/email_reply_parser)
+
 EmailReplyParser is a small library to parse plain text email content.
-See the rocco-documented source code for specifics on how it works.
 
 This is what GitHub uses to display comments that were created from
 email replies.  This code is being open sourced in an effort to
 crowdsource the quality of our email representation.
 
-See more at the [Rocco docs][rocco].
-
-[rocco]: http://help.github.com/code/email_reply_parser/
-
-##Usage
+## Usage
 
 To parse reply body:
 
 `parsed_body = EmailReplyParser.parse_reply(email_body, from_address)`
 
-from_address is optional.  If included it will attempt to parse out signatures based on the name in the from address (if signature doesn't have a standard deliminator.)
-
-## Problem?
-
-If you have a question about the behavior and formatting of email replies on GitHub, check out [support][support].  If you have a specific issue regarding this library, then hit up the [Issues][issues].
-
-[support]: http://support.github.com/
-[issues]: https://github.com/github/email_reply_parser/issues
+Argument `from_address` is optional. If included it will attempt to parse out signatures based on the name in the from address (if signature doesn't have a standard deliminator.)
 
 ## Installation
 
@@ -54,39 +46,19 @@ The best way to get your changes merged back into core is as follows:
 
 ### Quoted Headers
 
-Quoted headers aren't picked up if there's an extra line break:
+Quoted headers like these currently don't work with other languages:
 
     On <date>, <author> wrote:
 
     > blah
 
-Also, they're not picked up if the email client breaks it up into
-multiple lines.  GMail breaks up any lines over 80 characters for you.
-
-    On <date>, <author>
-    wrote:
-    > blah
-
-Not to mention that we're search for "on" and "wrote".  It won't work
-with other languages.
-
-Possible solution: Remove "reply@reply.github.com" lines...
-
 ### Weird Signatures
-
-Lines starting with `-` or `_` sometimes mark the beginning of
-signatures:
-
-    Hello
-
-    -- 
-    Rick
 
 Not everyone follows this convention:
 
     Hello
 
-    Mr Rick Olson
+    Saludos!!!!!!!!!!!!!!
     Galactic President Superstar Mc Awesomeville
     GitHub
 

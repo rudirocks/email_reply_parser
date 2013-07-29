@@ -30,7 +30,7 @@ require 'strscan'
 #
 # [mail]: https://github.com/mikel/mail
 class EmailReplyParser
-  VERSION = "0.5.7"
+  VERSION = "0.6.0"
 
   # Public: Splits an email body into a list of Fragments.
   #
@@ -49,7 +49,7 @@ class EmailReplyParser
   #
   # Returns a String.
   def self.parse_reply(text, from_address = "")
-    self.read(text, from_address).visible_text
+    self.read(text.to_s, from_address).visible_text
   end
 
   def self.parse_new_content(text, from_address = "")
@@ -86,7 +86,6 @@ class EmailReplyParser
     # from_address - from address of the email (optional)
     #
     # Returns this same Email instance.
-    
     def read(text, from_address = "")
       # parse out the from name if one exists and save for use later
       @from_name_raw = parse_raw_name_from_address(from_address)
@@ -116,7 +115,7 @@ class EmailReplyParser
 
       # Be sure to parse the last line of the email.
       if (last_line = @scanner.rest.to_s).size > 0
-        scan_line(last_line)
+        scan_line(last_line, true)
       end
 
       # Finish up the final fragment.  Finishing a fragment will detect any
@@ -133,13 +132,50 @@ class EmailReplyParser
 
   private
     EMPTY = "".freeze
-  
+
+    COMMON_REPLY_HEADER_REGEXES = [
+      /^On(.+)wrote:$/nm,
+      /\A\d{4}\/\d{1,2}\/\d{1,2}\s+.{1,80}\s<[^@]+@[^@]+>\Z/,
+    ]
+
+    # Line optionally starts with whitespace, contains two or more hyphens or
+    # underscores, and ends with optional whitespace.
+    # Example: '---' or '___' or '---   '
+    MULTI_LINE_SIGNATURE_REGEX = /^\s*[-_]{2,}\s*$/
+
+    # Line optionally starts with whitespace, followed by one hyphen, followed by a word character
+    # Example: '-Sandro'
+    ONE_LINE_SIGNATURE_REGEX = /^\s*-\w/
+
+    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s_-]+(Original Message)?[\s_-]+$/
+
+    # No block-quotes (> or <), followed by up to three words, followed by "Sent from my".
+    # Example: "Sent from my iPhone 3G"
+    SENT_FROM_REGEX = /^Sent from my (\s*\w+){1,3}(\s*<.*>)?$/
+
+    if defined?(Regexp::NOENCODING)
+      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
+    else
+      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source)
+    end
+
+    # TODO: refactor out in a i18n.yml file
+    # Supports English, French, Es-Mexican, Pt-Brazilian
+    # Maps a label to a label-group
+    QUOTE_HEADER_LABELS = Hash[*{
+      :from => ["From", "De"],
+      :to => ["To", "Para", "A"],
+      :cc => ["CC"],
+      :reply_to => ["Reply-To"],
+      :date => ["Date", "Sent", "Enviado", "Enviada em", "Fecha"],
+      :subject => ["Subject", "Assunto", "Asunto", "Objet"]
+    }.map {|group, labels| labels.map {|label| [label.downcase, group]}}.flatten]
+
     # normalize text so it is easier to parse
     #
     # text - text to normalize
     #
     # Returns a String
-    #
     def normalize_text(text)
       # in 1.9 we want to operate on the raw bytes
       text = text.dup.force_encoding('binary') if text.respond_to?(:force_encoding)
@@ -160,6 +196,7 @@ class EmailReplyParser
       # make sure that all lines of underscores are preceded by
       # at least two newline characters.
       text.gsub!(/([^\n])(?=\n_{7}_+)$/m, "\\1\n")
+
       text
     end
 
@@ -169,26 +206,17 @@ class EmailReplyParser
     #
     # Returns a String.
     def parse_name_from_address(address)
-      raw_name = parse_raw_name_from_address(address)
-      normalize_name(raw_name)
+      normalize_name(parse_raw_name_from_address(address))
     end
 
     def parse_raw_name_from_address(address)
       match = address.match(/^["']*([\w\s,]+)["']*\s*</)
-      unless match.nil?
-        match[1].strip.to_s
-      else
-        ""
-      end
+      match ? match[1].strip.to_s : EMPTY
     end
 
     def parse_email_from_address(address)
       match = address.match /<(.*)>/
-      if match.nil?
-        address
-      else
-        match[1]
-      end
+      match ? match[1] : address
     end
 
     # Normalize a name to First Last
@@ -196,7 +224,6 @@ class EmailReplyParser
     # name - name to normailze.
     #
     # Returns a String.
-
     def normalize_name(name)
       if name.include?(',')
         make_name_first_then_last(name)
@@ -216,144 +243,89 @@ class EmailReplyParser
 
     ### Line-by-Line Parsing
 
-    # Scans the given line of text and figures out which fragment it belongs
-    # to.
-    #
-    # line - A String line of text from the email.
-    #
-    # Returns nothing.
-    def scan_line(line)
+    # Scans the given line of text and determines which fragment it belongs to.
+    def scan_line(line, last = false)
       line.chomp!("\n")
-      line.lstrip! unless signature_line?(line)
-
-      # We're looking for leading `>`'s to see if this line is part of a
-      # quoted Fragment.
-      is_quoted = !!(line =~ /(>+)$/n)
+      line.reverse!
+      line.rstrip!
 
       # Mark the current Fragment as a signature if the current line is empty
       # and the Fragment starts with a common signature indicator.
-      if @fragment && line == EMPTY
-        last_line = @fragment.lines.last
-        is_signature = signature_line?(last_line) 
-        is_multiline_quote_header = multiline_quote_header_in_fragment?(@fragment)
+      # Mark the current Fragment as a quote if the current line is empty
+      # and the Fragment starts with a multiline quote header.
+      scan_signature_or_quote if @fragment && line == EMPTY
 
-        if is_signature || is_multiline_quote_header
-          if is_signature
-            @fragment.signature = true
-          else 
-            @fragment.quoted = true
+      # We're looking for leading `>`'s to see if this line is part of a
+      # quoted Fragment.
+      is_quoted = !!(line =~ /^>+/n)
+
+      # Note that a common reply header also counts as part of the quoted
+      # Fragment, even though it doesn't start with `>`.
+      unless @fragment &&
+          ((@fragment.quoted? == is_quoted) ||
+           (@fragment.quoted? && (line_is_reply_header?(line) || line == EMPTY)))
+        finish_fragment
+        @fragment = Fragment.new
+        @fragment.quoted = is_quoted
+      end
+
+      @fragment.add_line(line)
+      scan_signature_or_quote if last
+    end
+
+    def scan_signature_or_quote
+      if signature_line?(@fragment.lines.first)
+        @fragment.signature = true
+        finish_fragment
+      elsif multiline_quote_header_in_fragment?
+        @fragment.quoted = true
+        finish_fragment
+      end
+    end
+
+    # Returns +true+ if the current block in the current fragment has
+    # a multiline quote header, +false+ otherwise.
+    #
+    # The quote header we're looking for is mainly generated by Outlook
+    # clients. It's considered a quote header if the first 4 folded lines
+    # have one of the following forms:
+    #
+    # label: some text
+    #  *label:* some text
+    #
+    # where a line like this:
+    #
+    # label: some text
+    #   possibly indented text that belongs to the previous line
+    #
+    # is folded into:
+    #
+    # label: some text possibly indented text that belongs to the previous line
+    #
+    # and where label is a value from +QUOTE_HEADER_LABELS+ that appears
+    # only once in the first 4 lines and where each group of a label
+    # is represented at most once.
+    def multiline_quote_header_in_fragment?
+      folding = false
+      label_groups = []
+      @fragment.current_block.split("\n").each do |line|
+        if line =~ /\A\s*\*?([^:]+):(\s|\*)/
+          label = QUOTE_HEADER_LABELS[$1.downcase]
+          if label
+            return false if label_groups.include?(label)
+            return true if label_groups.length == 3
+            label_groups << label
+            folding = true
+          elsif !folding
+            return false
           end
-          finish_fragment
+        elsif !folding
+          return false
+        else
+          folding = true
         end
       end
-
-      # If the line matches the current fragment, add it.  Note that a common
-      # reply header also counts as part of the quoted Fragment, even though
-      # it doesn't start with `>`.
-      if @fragment &&
-          ((@fragment.quoted? == is_quoted) ||
-           (@fragment.quoted? && (quote_header?(line) || line == EMPTY)))
-        @fragment.lines << line
-
-      # Otherwise, finish the fragment and start a new one.
-      else
-        finish_fragment
-        @fragment = Fragment.new(is_quoted, line)
-      end
-    end
-
-    # Detects if a given line is a header above a quoted area.
-    #
-    # line - A String line of text from the email.
-    #
-    # Returns true if the line is a valid header, or false.
-    def quote_header?(line)
-      standard_header_regexp = reverse_regexp("On\s.+wrote:$")
-      line =~ standard_header_regexp
-    end
-
-    # Detects if a fragment has a multiline quote header
-    #
-    # fragment - fragment to look in
-    #
-    # Returns true if the fragment has header, or false.
-
-    def multiline_quote_header_in_fragment?(fragment)
-      fragment_text = fragment.lines.join("\n")
-      
-      from_labels = ["From", "De"]
-      to_labels = ["To", "Para"]
-      date_labels = ["Date", "Sent", "Enviada em"]
-      subject_labels = ["Subject", "Assunto"]
-      reply_to_labels = ["Reply-To"]
-
-      quoted_header_regexp = 
-        multiline_quoted_header_regexps(
-          :from => create_regexp_for_labels(from_labels),
-          :to => create_regexp_for_labels(to_labels),
-          :date => create_regexp_for_labels(date_labels),
-          :subject => create_regexp_for_labels(subject_labels),
-          :reply_to => create_regexp_for_labels(reply_to_labels)
-        )
-           
-      fragment_text =~ quoted_header_regexp
-    end
-
-    # create regexp for multiline quote headers 
-    #
-    # labels - hash of labels
-    #
-    # Returns Regexp
-    def multiline_quoted_header_regexps(labels)
-      quoted_header_regexps = []
-      
-      quoted_header_regexps <<  "#{labels[:date]}:.*\n#{labels[:from]}:.*\n#{labels[:to]}:.*\n#{labels[:subject]}:.*"
-      quoted_header_regexps << "#{labels[:from]}:.*\n#{labels[:date]}:.*\n#{labels[:to]}:.*\n#{labels[:subject]}:.*"
-      quoted_header_regexps << "#{labels[:from]}:.*\n#{labels[:to]}:.*\n#{labels[:date]}:.*\n#{labels[:subject]}:.*"
-      quoted_header_regexps << "#{labels[:from]}:.*\n#{labels[:reply_to]}:.*\n#{labels[:date]}:.*\n#{labels[:to]}:.*\n#{labels[:subject]}:.*"
-
-      reverse_regexp("(#{quoted_header_regexps.join("|")})")
-    end
-
-    # create regexp that will search for any from a list of labels
-    #
-    # labels - Array of text strings
-    #
-    # Returns regexp string
-
-    def create_regexp_for_labels(labels)
-      "(#{labels.join("|")})"
-    end
-
-    # reverses a regular expression 
-    #
-    # regexp - String or Regexp that you want to reverse
-    # ignore_case - where to the returned Regexp should be case insensitive
-    #
-    # Returns Regexp
-
-    def reverse_regexp(regexp, ignore_case = true)
-      regexp_text = regexp.to_s.reverse
-      regexp_text.gsub!("*.", ".*")
-      regexp_text.gsub!("+.", ".+")
-      regexp_text.gsub!("$", "^")
-      regexp_text = reverse_parentheses(regexp_text)
-
-      regexp_options = []
-      regexp_options << Regexp::IGNORECASE if ignore_case
-      Regexp.new(regexp_text, *regexp_options)
-    end
-
-    # reverses parentheses in a string 
-    #
-    # text - String or Regexp that you want to reverse
-    #
-    # Returns String
-
-    def reverse_parentheses(text)
-      text.gsub!(/\)(.*)\(/m, '(\1)')  #reverses outter parentheses
-      text.gsub!(/\)(.*?)\(/m, '(\1)')  #reverses nested parentheses
-      text
+      return false
     end
 
     # Detects if a given line is the beginning of a signature
@@ -362,10 +334,19 @@ class EmailReplyParser
     #
     # Returns true if the line is the beginning of a signature, or false.
     def signature_line?(line)
-      regex = /(--|__|\w-$)|(^(\w+\s*){1,3} #{"Sent from my".reverse}$)/
-      signature_detected = line =~ regex
-      signature_detected = line_is_signature_name?(line) if !signature_detected
-      signature_detected
+      line =~ SIGNATURE_REGEX || line_is_signature_name?(line)
+    end
+
+    # Detects if a given line is a common reply header.
+    #
+    # line - A String line of text from the email.
+    #
+    # Returns true if the line is a valid header, or false.
+    def line_is_reply_header?(line)
+      COMMON_REPLY_HEADER_REGEXES.each do |regex|
+        return true if line =~ regex
+      end
+      false
     end
 
     # Detects if the @from name is a big part of a given line and therefore the beginning of a signature
@@ -373,20 +354,20 @@ class EmailReplyParser
     # line - A String line of text from the email.
     #
     # Returns true if @from_name is a big part of the line, or false.
-
     def line_is_signature_name?(line)
       regexp = generate_regexp_for_name()
       @from_name_normalized != "" && (line =~ regexp) && ((@from_name_normalized.size.to_f / line.size) > 0.25)
     end
 
-    #generates regexp which always for additional words or initials between first and last names 
+    #generates regexp which always for additional words or initials between first and last names
     def generate_regexp_for_name
-      name_parts = @from_name_normalized.reverse.split(" ")
+      name_parts = @from_name_normalized.split(" ")
       seperator = '[\w.\s]*'
       regexp = Regexp.new(name_parts.join(seperator), Regexp::IGNORECASE)
     end
-    # Builds the fragment string and reverses it, after all lines have been
-    # added.  It also checks to see if this Fragment is hidden.  The hidden
+
+    # Builds the fragment string, after all lines have been added.
+    # It also checks to see if this Fragment is hidden.  The hidden
     # Fragment check reads from the bottom to the top.
     #
     # Any quoted Fragments or signature Fragments are marked hidden if they
@@ -412,7 +393,7 @@ class EmailReplyParser
         @fragment.finish
         if !@found_visible
           if @fragment.quoted? || @fragment.signature? ||
-              @fragment.to_s.strip == EMPTY
+              @fragment.reply_header? || @fragment.to_s.strip == EMPTY
             @fragment.hidden = true
           else
             @found_visible = true
@@ -424,47 +405,59 @@ class EmailReplyParser
     end
   end
 
-  ### Fragments
-
   # Represents a group of paragraphs in the email sharing common attributes.
   # Paragraphs should get their own fragment if they are a quoted area or a
   # signature.
-  class Fragment < Struct.new(:quoted, :signature, :hidden)
-    # This is an Array of String lines of content.  Since the content is
-    # reversed, this array is backwards, and contains reversed strings.
-    attr_reader :lines,
+  class Fragment < Struct.new(:quoted, :signature, :reply_header, :hidden)
+    # Array of string lines that make up the content of this fragment.
+    attr_reader :lines
+
+    # Array of string lines that is being processed not having
+    # an empty line.
+    attr_reader :current_block
 
     # This is reserved for the joined String that is build when this Fragment
     # is finished.
-      :content
+    attr_reader :content
 
-    def initialize(quoted, first_line)
-      self.signature = self.hidden = false
-      self.quoted = quoted
-      @lines      = [first_line]
-      @content    = nil
-      @lines.compact!
+    def initialize
+      self.quoted = self.signature = self.reply_header = self.hidden = false
+      @lines = []
+      @current_block = []
+      @content = nil
     end
 
     alias quoted?    quoted
     alias signature? signature
+    alias reply_header? reply_header
     alias hidden?    hidden
 
+    def add_line(line)
+      return unless line
+      @lines.insert(0, line)
+      if line == ""
+        @current_block.clear
+      else
+        @current_block.insert(0, line)
+      end
+    end
+
+    def current_block
+      @current_block.join("\n")
+    end
+
     # Builds the string content by joining the lines and reversing them.
-    #
-    # Returns nothing.
     def finish
       @content = @lines.join("\n")
-      @lines = nil
-      @content.reverse!
+      @lines = @current_block = nil
     end
 
     def to_s
-      @content
+      @lines ? @lines.join("\n") : @content
     end
 
     def inspect
-      to_s.inspect
+      "#{super.inspect} : #{to_s.inspect}"
     end
   end
 end
