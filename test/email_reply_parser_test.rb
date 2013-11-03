@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# -*- encoding : utf-8 -*-
 require 'rubygems'
 require 'test/unit'
 require 'pathname'
@@ -140,6 +140,28 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     # German
     reply = EmailReplyParser.parse_reply "Am 01.11.2013 um 15:35 schrieb Nico <nico@example.com>:\n\n> hello"
     assert_equal "", reply
+
+
+    # Hey Britta!
+    # Freu mich auch auf Samstag,wird bestimmt nen cooler Abend! 
+    # Dann hoffen wir mal,dass wir Vor-oder Nachspeise bekommen.Das wär am entspanntesten :)
+    # 
+    # Von Samsung Mobile gesendet
+    # 
+    # -------- Ursprüngliche Nachricht --------
+    # Von: "Britta N." <notifications@bote.rudirockt.de>
+    # Datum:
+    # An: corinna_paus@yahoo.de
+    # Betreff: Kein Betreff
+    # 
+    # Hi Coy,
+    # voll cool, dass Du dabei bist! Freu mich auf den Abend mit Dir! Welchen Gang wir kochen müssen, entscheidet sich nach Ende der Anmeldung am 06.11. um 12 Uhr.
+    # Wird bestimmt lustig. Jetzt sind schon über 60 Leute angemeldet, das ist super, denn das verkürzt automatisch die Wege zwischen den Gängen.
+    # Könnte nur eng werden in der "After-Party" Location... mal schaun.
+    # Viele Grüße
+    # Britta
+
+
   end
 
   def test_deals_with_multiline_reply_headers
@@ -199,6 +221,10 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Foo", visible_text(:email_2_7)
   end
 
+  def test_parse_original_message_german
+    assert_equal "Foo", visible_text(:email_2_7_de)
+  end
+
   def test_parse_weird_signature
     assert_equal "Hello", visible_text(:email_2_8)
   end
@@ -211,6 +237,10 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
 
   def test_parse_out_sent_from_iPhone
     assert_equal "Here is another email", visible_text(:email_iPhone)
+  end
+
+  def test_parse_out_sent_from_iPhone
+    assert_equal "Here is another email", visible_text(:email_iPhone_de)
   end
 
   def test_parse_out_sent_from_BlackBerry

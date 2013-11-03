@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'strscan'
 
 # EmailReplyParser is a small library to parse plain text email content.  The
@@ -148,16 +149,22 @@ class EmailReplyParser
     # Example: '-Sandro'
     ONE_LINE_SIGNATURE_REGEX = /^\s*-\w/
 
-    ORIGINAL_MESSAGE_SIGNATURE_REGEX = /^[\s_-]+(Original Message)?[\s_-]+$/
+    ORIGINAL_MESSAGE_SIGNATURE_REGEXES = [
+      /^[\s_-]+(Original Message)?[\s_-]+$/,
+      /^[\s_-](.+)(ngliche Nachricht)[\s_-]+$/,
+    ]
 
     # No block-quotes (> or <), followed by up to three words, followed by "Sent from my".
     # Example: "Sent from my iPhone 3G"
-    SENT_FROM_REGEX = /^Sent from my (\s*\w+){1,3}(\s*<.*>)?$/
+    SENT_FROM_REGEXES = [
+      /^Sent from my (\s*\w+){1,3}(\s*<.*>)?$/,
+      /^Von (\s*\w+){1,3}(\s*<.*>)? gesendet$/,
+    ]
 
     if defined?(Regexp::NOENCODING)
-      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source, Regexp::NOENCODING)
+      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, Regexp.union(ORIGINAL_MESSAGE_SIGNATURE_REGEXES), Regexp.union(SENT_FROM_REGEXES)).source, Regexp::NOENCODING)
     else
-      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, ORIGINAL_MESSAGE_SIGNATURE_REGEX, SENT_FROM_REGEX).source)
+      SIGNATURE_REGEX = Regexp.new(Regexp.union(MULTI_LINE_SIGNATURE_REGEX, ONE_LINE_SIGNATURE_REGEX, Regexp.union(ORIGINAL_MESSAGE_SIGNATURE_REGEXES), Regexp.union(SENT_FROM_REGEXES)).source)
     end
 
     # TODO: refactor out in a i18n.yml file
