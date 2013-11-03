@@ -5,7 +5,7 @@ require 'pathname'
 require 'pp'
 
 dir = Pathname.new File.expand_path(File.dirname(__FILE__))
-require dir + '..' + 'lib' + 'tr_email_reply_parser'
+require dir + '..' + 'lib' + 'email_reply_parser'
 
 EMAIL_FIXTURE_PATH = dir + 'emails'
 

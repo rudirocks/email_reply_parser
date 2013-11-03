@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift '.'
-require 'lib/tr_email_reply_parser'
+require 'lib/email_reply_parser'
 
 ## This is the rakegem gemspec template. Make sure you read and understand
 ## all of the comments. Some sections require modification, and others can
@@ -15,10 +15,10 @@ Gem::Specification.new do |s|
   ## Leave these as is they will be modified for you by the rake gemspec task.
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
-  s.name              = 'tr_email_reply_parser'
+  s.name              = 'email_reply_parser'
   s.version           = EmailReplyParser::VERSION
   s.date              = Time.now.strftime('%Y-%m-%d')
-  s.rubyforge_project = 'tr_email_reply_parser'
+  s.rubyforge_project = 'email_reply_parser'
 
   ## Make sure your summary is short. The description may be as long
   ## as you like.
@@ -65,7 +65,7 @@ Gem::Specification.new do |s|
     LICENSE
     README.md
     Rakefile
-    lib/tr_email_reply_parser.rb
+    lib/email_reply_parser.rb
     test/email_reply_parser_test.rb
     test/emails/correct_sig.txt
     test/emails/email_1_1.txt
@@ -112,7 +112,7 @@ Gem::Specification.new do |s|
     test/emails/email_sent_from_my_not_signature.txt
     test/emails/email_was_showing_as_nothing_visible.txt
     test/emails/new_content/email_1_2.txt
-    tr_email_reply_parser.gemspec
+    email_reply_parser.gemspec
   ]
   # = MANIFEST =
 
