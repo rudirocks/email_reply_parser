@@ -135,6 +135,7 @@ class EmailReplyParser
 
     COMMON_REPLY_HEADER_REGEXES = [
       /^On(.+)wrote:$/nm,
+      /^Am(.+)schrieb(.+):$/nm,
       /\A\d{4}\/\d{1,2}\/\d{1,2}\s+.{1,80}\s<[^@]+@[^@]+>\Z/,
     ]
 
@@ -163,12 +164,12 @@ class EmailReplyParser
     # Supports English, French, Es-Mexican, Pt-Brazilian
     # Maps a label to a label-group
     QUOTE_HEADER_LABELS = Hash[*{
-      :from => ["From", "De"],
-      :to => ["To", "Para", "A"],
+      :from => ["From", "De", "Von"],
+      :to => ["To", "Para", "A", "An"],
       :cc => ["CC"],
       :reply_to => ["Reply-To"],
-      :date => ["Date", "Sent", "Enviado", "Enviada em", "Fecha"],
-      :subject => ["Subject", "Assunto", "Asunto", "Objet"]
+      :date => ["Date", "Sent", "Enviado", "Enviada em", "Fecha", "Datum"],
+      :subject => ["Subject", "Assunto", "Asunto", "Objet", "Betreff"]
     }.map {|group, labels| labels.map {|label| [label.downcase, group]}}.flatten]
 
     # normalize text so it is easier to parse
