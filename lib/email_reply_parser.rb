@@ -202,11 +202,12 @@ class EmailReplyParser
         text.gsub! match[1], match[1].gsub("\n", " ") unless match[1] =~ /\n\n/
       end
 
-      # Some users may reply directly above a line of underscores.
+      # Some users may reply directly above a line of underscores or dashes.
       # In order to ensure that these fragments are split correctly,
       # make sure that all lines of underscores are preceded by
       # at least two newline characters.
       text.gsub!(/([^\n])(?=\n_{7}_+)$/m, "\\1\n")
+      text.gsub!(/([^\n])(?=\n-+)$/m, "\\1\n")
 
       text
     end
