@@ -365,6 +365,10 @@ This line would have been considered part of the header line."
     assert_equal "Foo!", visible_text(:email_multiline_quote_header_es_mx)
   end
 
+  def test_multiline_quote_header_de_mx
+    assert_equal "Foo!", visible_text(:email_multiline_quote_header_de_mx)
+  end
+
   def test_multiline_quote_header_fr
     assert_equal "Foo!", visible_text(:email_multiline_quote_header_fr)
   end

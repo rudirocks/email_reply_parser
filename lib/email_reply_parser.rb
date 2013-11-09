@@ -175,7 +175,7 @@ class EmailReplyParser
       :to => ["To", "Para", "A", "An"],
       :cc => ["CC"],
       :reply_to => ["Reply-To"],
-      :date => ["Date", "Sent", "Enviado", "Enviada em", "Fecha", "Datum"],
+      :date => ["Date", "Sent", "Gesendet", "Enviado", "Enviada em", "Fecha", "Datum"],
       :subject => ["Subject", "Assunto", "Asunto", "Objet", "Betreff"]
     }.map {|group, labels| labels.map {|label| [label.downcase, group]}}.flatten]
 
