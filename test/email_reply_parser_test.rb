@@ -225,6 +225,10 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Foo", visible_text(:email_2_7_de)
   end
 
+  def test_parse_reply_message
+    assert_equal "Foo", visible_text(:email_2_7_1)
+  end
+
   def test_parse_weird_signature
     assert_equal "Hello", visible_text(:email_2_8)
   end
@@ -239,8 +243,12 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     assert_equal "Here is another email", visible_text(:email_iPhone)
   end
 
-  def test_parse_out_sent_from_iPhone
+  def test_parse_out_sent_from_iPhone_de
     assert_equal "Here is another email", visible_text(:email_iPhone_de)
+  end
+
+  def test_parse_out_sent_from_iPhone_de_2
+    assert_equal "Here is another email", visible_text(:email_iPhone_de_2)
   end
 
   def test_parse_out_sent_from_BlackBerry

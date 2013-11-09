@@ -151,6 +151,7 @@ class EmailReplyParser
 
     ORIGINAL_MESSAGE_SIGNATURE_REGEXES = [
       /^[\s_-]+(Original Message)?[\s_-]+$/,
+      /^[\s_-]+(Reply Message)?[\s_-]+$/,
       /^[\s_-](.+)(ngliche Nachricht)[\s_-]+$/,
     ]
 
@@ -159,6 +160,8 @@ class EmailReplyParser
     SENT_FROM_REGEXES = [
       /^Sent from my (\s*\w+){1,3}(\s*<.*>)?$/,
       /^Von (\s*\w+){1,3}(\s*<.*>)? gesendet$/,
+      /^Gesendet von meinem (\s*\w+){1,3}(\s*<.*>)?$/,
+      /^Gesendet mit meinem (\s*\w+){1,3}(\s*<.*>)?$/,
     ]
 
     if defined?(Regexp::NOENCODING)
