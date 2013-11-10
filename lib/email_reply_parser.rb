@@ -137,6 +137,7 @@ class EmailReplyParser
     COMMON_REPLY_HEADER_REGEXES = [
       /^On(.+)wrote:$/nm,
       /^Am(.+)schrieb(.+):$/nm,
+      /^Le(.+)a(.+)crit( )?:$/nm,
       /\A\d{4}\/\d{1,2}\/\d{1,2}\s+.{1,80}\s<[^@]+@[^@]+>\Z/,
     ]
 

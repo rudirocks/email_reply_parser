@@ -141,6 +141,13 @@ I am currently using the Java HTTP API.\n", reply.fragments[0].to_s
     reply = EmailReplyParser.parse_reply "Am 01.11.2013 um 15:35 schrieb Nico <nico@example.com>:\n\n> hello"
     assert_equal "", reply
 
+    # French
+    reply = EmailReplyParser.parse_reply "Le 10.11.2013 19:22, Mo G a écrit:\n\n> hello"
+    assert_equal "", reply
+
+    reply = EmailReplyParser.parse_reply "Le 10.11.2013 19:22, Mo G a écrit :\n\n> hello"
+    assert_equal "", reply
+
 
     # Hey Britta!
     # Freu mich auch auf Samstag,wird bestimmt nen cooler Abend! 
