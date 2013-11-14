@@ -152,6 +152,7 @@ class EmailReplyParser
 
     ORIGINAL_MESSAGE_SIGNATURE_REGEXES = [
       /^[\s_-]+(Original Message)?[\s_-]+$/,
+      /^[\s_-]+(Original Nachricht)?[\s_-]+$/,
       /^[\s_-]+(Reply Message)?[\s_-]+$/,
       /^[\s_-](.+)(ngliche Nachricht)[\s_-]+$/,
     ]
